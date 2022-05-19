@@ -1,10 +1,11 @@
 from django.conf import settings
-from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.templatetags.static import static
 from django.urls import reverse, path, include
 from django.utils.html import format_html_join, format_html
 from django.utils.translation import ugettext as _
 
 import wagtail.admin.rich_text.editors.draftail.features as draftail_features
+from wagtail.admin.rich_text.converters.html_to_contentstate import InlineStyleElementHandler
 from wagtail.core import hooks
 
 from wagtailcolourpicker.conf import get_setting
@@ -34,17 +35,7 @@ def editor_css():
 
 @hooks.register('insert_editor_js')
 def insert_editor_js():
-    js_files = [
-        # We require this file here to make sure it is loaded before the other.
-        'wagtailadmin/js/draftail.js',
-        'colourpicker/js/colourpicker.js',
-    ]
-    js_includes = format_html_join(
-        '\n',
-        '<script src="{0}"></script>',
-        ((static(filename), ) for filename in js_files)
-    )
-    js_includes += format_html(
+    js_includes = format_html(
         "<script>window.chooserUrls.colourChooser = '{0}';</script>",
         reverse('wagtailcolourpicker:chooser')
     )
@@ -71,7 +62,10 @@ def register_textcolour_feature(features):
         feature_name,
         draftail_features.EntityFeature(
             control,
-            js=['colourpicker/js/chooser.js']
+            js=[
+                'colourpicker/js/chooser.js',
+                'colourpicker/js/colourpicker.js',
+            ],
         )
     )
 
